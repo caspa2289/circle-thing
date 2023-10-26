@@ -30,6 +30,7 @@ export class App {
         this.entityManager = entityManager
 
         this.update = this.update.bind(this)
+        this.onPause = this.onPause.bind(this)
     }
 
     init() {
@@ -51,7 +52,7 @@ export class App {
         Renderer.drawFrame(this, this.options, this.entityManager)
     }
 
-    onPause = () => {
+    onPause(){
         this.isPaused = !this.isPaused
     }
 

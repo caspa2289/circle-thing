@@ -57,4 +57,15 @@ export class Vec2 {
         return Vec2.subtract(velocity, Vec2.multiplyScalar(normal, 2 * Vec2.dot(velocity, normal)))
     }
 
+    static reflectFromNormal(vector: Vector2, normal: Vector2) {
+        // v' = v - 2 * (v ∙ n/n ∙ n) * n
+        return Vec2.subtract(
+            vector,
+            Vec2.multiplyScalar(
+                normal,
+                (2 * Vec2.dot(vector, normal) / Vec2.dot(normal, normal))
+            )
+        )
+    }
+
 }
