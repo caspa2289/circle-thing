@@ -9,9 +9,12 @@ const PRECALC = {
     radiusFactor: PARTICLE_RADIUS / (PARTICLE_RADIUS + PARTICLE_RADIUS),
     circleAngle: 2 * Math.PI
 }
-const FRAME_RATE = 1000 / 60
-const TIME_SLOWING_COEFFICIENT = 3
-const DELTA_TIME_SUBSTITUTE = FRAME_RATE * TIME_SLOWING_COEFFICIENT
+const TIME_SPEED_COEFFICIENT = 30
+const TARGET_FRAME_TIME = 1000 / 60
+let RAW_DELTA_TIME = performance.now()
+let DELTA_TIME = RAW_DELTA_TIME / TIME_SPEED_COEFFICIENT
+let LAST_FRAME_TIME = RAW_DELTA_TIME
+let IS_PAUSED = false
 
 const setupCanvas = () => {
     //FIXME: что-то не работает тут
@@ -54,6 +57,14 @@ const obstacles: Obstacle[] = [
     }
 ]
 
+const getRelativeVelocity = (v: Vector2): Vector2 => {
+    //FIXME: изменение дельта тайма меняет рещультат симуляции, надо решать с интерполяцией что-то
+    return {
+        x: v.x / DELTA_TIME,
+        y: v.y / DELTA_TIME
+    }
+}
+
 // const createParticles = () => {
 //     for (let i = 0; i <= 10; i++) {
 //         particles.push(createParticle(i * 35, 30, 0, 0))
@@ -66,7 +77,7 @@ const drawObstacles = () => {
     })
 }
 
-const drawFrame = (particles: Particle[]) => {
+const update = () => {
     CONTEXT.beginPath()
     CONTEXT.fillStyle = 'blue'
     particles.forEach(({ position }) => {
@@ -115,18 +126,12 @@ const resolveParticleCollisions = (particleIndex: number, particles: Particle[])
             //FIXME: надо устранять коллижены, если они есть. Попробовать интерполяцию
             // newPosition = newPosition
             newVelocity = reflectedVector1
-            newRelativeVelocity = {
-                x: reflectedVector1.x / DELTA_TIME_SUBSTITUTE,
-                y: reflectedVector1.y / DELTA_TIME_SUBSTITUTE
-            }
+            newRelativeVelocity = getRelativeVelocity(reflectedVector1)
 
             particles[i] = {
                 position: particles[i].position,
                 velocity: reflectedVector2,
-                relativeVelocity: {
-                    x: reflectedVector2.x / DELTA_TIME_SUBSTITUTE,
-                    y: reflectedVector2.y / DELTA_TIME_SUBSTITUTE
-                }
+                relativeVelocity: getRelativeVelocity(reflectedVector2)
             }
         }
     }
@@ -147,11 +152,7 @@ const prepareFrame = () => {
             x: velocity.x,
             y: velocity.y + GRAVITY
         }
-        //FIXME: вынести в отдельную функцию
-        const newRelativeVelocity = {
-            x: newVelocity.x / DELTA_TIME_SUBSTITUTE,
-            y: newVelocity.y / DELTA_TIME_SUBSTITUTE
-        }
+        const newRelativeVelocity = getRelativeVelocity(newVelocity)
 
         particles[i] = {position: newPosition, velocity: newVelocity, relativeVelocity: newRelativeVelocity}
     }
@@ -161,13 +162,23 @@ setupCanvas()
 
 //createParticles()
 
-const cycle = () => {
+const cycle = (frameTime: number) => {
+    RAW_DELTA_TIME = (frameTime - LAST_FRAME_TIME) / TARGET_FRAME_TIME
+    DELTA_TIME = RAW_DELTA_TIME * TIME_SPEED_COEFFICIENT
+    LAST_FRAME_TIME = frameTime
+
+    window.requestAnimationFrame(cycle)
+    if (IS_PAUSED) return
+
     prepareFrame()
-    drawFrame(particles)
+    update()
+}
+
+const onPause = () => {
+    IS_PAUSED = !IS_PAUSED
 }
 
 // window.addEventListener('click', cycle)
 
-setInterval(() => {
-    cycle()
-}, DELTA_TIME_SUBSTITUTE)
+window.addEventListener('click', onPause)
+window.requestAnimationFrame(cycle)
