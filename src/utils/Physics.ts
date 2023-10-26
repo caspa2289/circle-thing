@@ -12,7 +12,7 @@ export class Physics {
                 position,
                 velocity,
                 relativeVelocity
-            } = this._resolveParticleCollisions(i, entityManager.particles, options, app)
+            } = this._resolveParticleCollisions(i, entityManager, options, app)
 
             const newPosition = {
                 x: position.x + relativeVelocity.x,
@@ -30,24 +30,58 @@ export class Physics {
 
     private static _resolveParticleCollisions(
         particleIndex: number,
-        particles: Particle[],
+        entityManager: EntityManager,
         options: Options,
         app: App
     ): Particle {
-        const { position, velocity, relativeVelocity } = particles[particleIndex]
+        const { position, velocity, relativeVelocity } = entityManager.particles[particleIndex]
 
         //FIXME: потереть
         // eslint-disable-next-line prefer-const
         let [ newPosition, newVelocity, newRelativeVelocity ] = [ position, velocity, relativeVelocity ]
 
-        for (let i = 0; i < particles.length; i++) {
+        for (let i = 0; i < entityManager.obstacles.length; i++) {
+            const { data: [ rectX, rectY, rectWidth, rectHeight ], normal } = entityManager.obstacles[i]
+
+            const intersects = () => {
+                const rectHalfWidth = rectWidth / 2
+                const rectHalfHeight = rectHeight / 2
+
+                const rectCenterX = Math.abs(rectX - rectHalfWidth)
+                const rectCenterY = Math.abs(rectY - rectHalfHeight)
+                const circleDistance = Vec2.new(
+                    Math.abs(newPosition.x - rectCenterX),
+                    Math.abs(newPosition.y - rectCenterY)
+                )
+
+                //FIXME: formula seems to be inaccurate for bottom and right obstacles, not sure why
+
+                if (circleDistance.x > rectHalfWidth + options.particleRadius) return false
+                if (circleDistance.y > rectHalfHeight + options.particleRadius) return false
+                if (circleDistance.x <= rectHalfWidth) return true
+                if (circleDistance.y <= rectHalfHeight) return true
+
+                const cornerDistanceSquared = (circleDistance.x - rectHalfWidth) * 2 + (circleDistance.y - rectHalfHeight) * 2
+
+                return cornerDistanceSquared <= options.particleRadius * 2
+            }
+
+            if (intersects()) {
+                const reflectedVector = Vec2.reflectFromNormal(newVelocity, normal)
+
+                newVelocity = reflectedVector
+                newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector, app)
+            }
+        }
+
+        for (let i = 0; i < entityManager.particles.length; i++) {
             if (i === particleIndex) continue
 
             const {
                 position: cPosition,
                 // velocity: cVelocity,
                 // relativeVelocity: cRelativeVelocity
-            } = particles[i]
+            } = entityManager.particles[i]
 
             //check collision
             const d1 = newPosition.x - cPosition.x
@@ -74,8 +108,8 @@ export class Physics {
                 newVelocity = reflectedVector1
                 newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector1, app)
 
-                particles[i] = {
-                    position: particles[i].position,
+                entityManager.particles[i] = {
+                    position: entityManager.particles[i].position,
                     velocity: reflectedVector2,
                     relativeVelocity: Physics.getRelativeVelocity(reflectedVector2, app)
                 }
