@@ -1,7 +1,4 @@
-export interface Vector2 {
-    x: number,
-    y: number
-}
+import { Vector2 } from '../types/common'
 
 export class Vec2 {
 
