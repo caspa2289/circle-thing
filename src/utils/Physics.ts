@@ -24,7 +24,11 @@ export class Physics {
             }
             const newRelativeVelocity = Physics.getRelativeVelocity(newVelocity, app)
 
-            entityManager.particles[i] = {position: newPosition, velocity: newVelocity, relativeVelocity: newRelativeVelocity}
+            entityManager.particles[i] = {
+                position: newPosition,
+                velocity: newVelocity,
+                relativeVelocity: newRelativeVelocity
+            }
         }
     }
 
@@ -36,8 +40,6 @@ export class Physics {
     ): Particle {
         const { position, velocity, relativeVelocity } = entityManager.particles[particleIndex]
 
-        //FIXME: потереть
-        // eslint-disable-next-line prefer-const
         let [ newPosition, newVelocity, newRelativeVelocity ] = [ position, velocity, relativeVelocity ]
 
         for (let i = 0; i < entityManager.obstacles.length; i++) {
@@ -67,7 +69,9 @@ export class Physics {
             }
 
             if (intersects()) {
-                const reflectedVector = Vec2.reflectFromNormal(newVelocity, normal)
+                const reflectedVector = Physics.applyFriction(
+                    Vec2.reflectFromNormal(newVelocity, normal), options
+                )
 
                 newVelocity = reflectedVector
                 newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector, app)
@@ -75,20 +79,21 @@ export class Physics {
         }
 
         for (let i = 0; i < entityManager.particles.length; i++) {
-            if (i === particleIndex) continue
+            if (i <= particleIndex) continue
 
             const {
                 position: cPosition,
-                // velocity: cVelocity,
+                velocity: cVelocity,
                 // relativeVelocity: cRelativeVelocity
             } = entityManager.particles[i]
 
             //check collision
-            const d1 = newPosition.x - cPosition.x
-            const d2 = newPosition.y - cPosition.y
+            const dx = cPosition.x - newPosition.x
+            const dy = cPosition.y - newPosition.y
             //FIXME: они разъезжаются на маке, потому что коллижен считается два раза для первой сферы
+            //UPD: добавил разлепление партиклов, мб это фиксит
             //TODO: проверить, сохранилось ли это с введением DELTA_TIME
-            const centerDistance = Math.sqrt(d1 * d1 + d2 * d2)
+            const centerDistance = Math.sqrt(dx * dx + dy * dy)
 
             if (centerDistance < options.particleRadius * 2) {
                 //if collided, find collision point
@@ -98,13 +103,41 @@ export class Physics {
                 )
 
                 //reflected vector for current sphere
-                //FIXME: тут velocity надо брать соответствующее (newVelocity для текущей сферы и cVelocity для другой)
-                const reflectedVector1 = Vec2.reflectFromPoint(collisionPoint, cPosition, velocity)
+                const reflectedVector1 = Physics.applyFriction(
+                    Vec2.reflectFromPoint(collisionPoint, cPosition, velocity),
+                    options
+                )
                 //reflected vector for another sphere
-                const reflectedVector2 = (collisionPoint, newPosition, velocity)
+                const reflectedVector2 = Physics.applyFriction(
+                    Vec2.reflectFromPoint(collisionPoint, newPosition, cVelocity),
+                    options
+                )
 
-                //FIXME: надо устранять коллижены, если они есть. Попробовать интерполяцию
-                // newPosition = newPosition
+                //check if particles intersect
+                const intersectionDepth = options.particleRadius + options.particleRadius - centerDistance
+
+                if (intersectionDepth > 0) {
+                    //if they intersect, move them apart evenly
+
+                    const newDx = dx / centerDistance
+                    const newDy = dy / centerDistance
+
+                    newPosition = Vec2.new(
+                        newPosition.x - newDx * intersectionDepth / 2,
+                        newPosition.y - newDy * intersectionDepth / 2,
+                    )
+
+                    const newPosition2 = Vec2.new(
+                        cPosition.x + newDx * intersectionDepth / 2,
+                        cPosition.y + newDy * intersectionDepth / 2,
+                    )
+
+                    entityManager.particles[i] = {
+                        ...entityManager.particles[i],
+                        position: newPosition2,
+                    }
+                }
+
                 newVelocity = reflectedVector1
                 newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector1, app)
 
@@ -119,9 +152,13 @@ export class Physics {
         return { position: newPosition, velocity: newVelocity, relativeVelocity: newRelativeVelocity }
     }
 
+    static applyFriction(v: Vector2, options: Options): Vector2 {
+        return Vec2.multiplyScalar(v, options.friction)
+    }
+
     //FIXME: надо будет убрать в отдельный класс когда будут другие утилиты для физики
     static getRelativeVelocity(v: Vector2, app: App): Vector2 {
-        //FIXME: изменение дельта тайма меняет рещультат симуляции, надо решать с интерполяцией что-то
+        //FIXME: изменение дельта тайма меняет результат симуляции, надо решать с интерполяцией что-то
         return {
             x: v.x / app.deltaTime,
             y: v.y / app.deltaTime
