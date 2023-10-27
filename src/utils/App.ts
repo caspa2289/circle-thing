@@ -37,8 +37,17 @@ export class App {
         this.canvas.width = document.body.clientWidth * this.dpr
         this.canvas.height = document.body.clientHeight * this.dpr
 
-        window.addEventListener('click', this.onPause)
-        window.requestAnimationFrame(this.update)
+        if (this.options.debug) {
+            window.addEventListener('click', () => {
+                this.rawDeltaTime = 1
+                this.lastFrameTime = 1
+                Physics.prepareFrame(this.entityManager, this.options, this)
+                Renderer.drawFrame(this, this.options, this.entityManager)
+            })
+        } else {
+            window.addEventListener('click', this.onPause)
+            window.requestAnimationFrame(this.update)
+        }
     }
 
     update(frameTime: number) {

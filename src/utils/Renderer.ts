@@ -5,6 +5,7 @@ import { Obstacle } from '../types/common'
 
 export class Renderer {
     static drawFrame(app: App, options: Options, entityManager: EntityManager) {
+        //FIXME: this doesnt work on more than 2 spheres
         app.context.beginPath()
         app.context.fillStyle = 'blue'
         //FIXME: заменить на for loop

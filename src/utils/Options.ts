@@ -7,10 +7,12 @@ export class Options {
     }
     timeSpeedCoefficient: number
     targetFrameTime: number
+    friction: number
+    debug: boolean
     private static _instance?: Options
 
     //FIXME: добавить возможность настраивать вещи налету
-    constructor() {
+    constructor({ debug } : { debug?: boolean }) {
         if (Options._instance) {
             return Options._instance
         }
@@ -23,5 +25,7 @@ export class Options {
         }
         this.timeSpeedCoefficient = 30
         this.targetFrameTime = 1000 / 60
+        this.friction = 0.90
+        this.debug = !!debug
     }
 }
