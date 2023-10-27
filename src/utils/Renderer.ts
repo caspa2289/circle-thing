@@ -6,9 +6,9 @@ import { Obstacle } from '../types/common'
 export class Renderer {
     static drawFrame(app: App, options: Options, entityManager: EntityManager) {
         app.context.clearRect(0, 0, app.canvas.width, app.canvas.height)
-        entityManager.particles.forEach(({ position }) => {
+        entityManager.particles.forEach(({ position, color }) => {
             app.context.beginPath()
-            app.context.fillStyle = 'blue'
+            app.context.fillStyle = color
             app.context.arc(position.x, position.y, options.particleRadius, 0, options.precalc.circleAngle)
             app.context.fill()
         })
