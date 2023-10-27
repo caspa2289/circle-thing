@@ -43,7 +43,7 @@ export class Physics {
         let [ newPosition, newVelocity, newRelativeVelocity ] = [ position, velocity, relativeVelocity ]
 
         for (let i = 0; i < entityManager.obstacles.length; i++) {
-            const { data: [ rectX, rectY, rectWidth, rectHeight ], normal } = entityManager.obstacles[i]
+            const { data: [ rectX, rectY, rectWidth, rectHeight ] } = entityManager.obstacles[i]
 
             const intersects = () => {
                 const rectHalfWidth = rectWidth / 2
@@ -67,8 +67,41 @@ export class Physics {
             }
 
             if (intersects()) {
+                const obstacleLeftX = rectX
+                const obstacleRightX = rectX + rectWidth
+                const obstacleTopY = rectY
+                const obstacleBottomY = rectY + rectHeight
+
+                const collisionPoint = Vec2.new(
+                    newPosition.x < obstacleLeftX
+                        ? obstacleLeftX : newPosition.x > obstacleRightX
+                            ? obstacleRightX : newPosition.x,
+                    newPosition.y < obstacleTopY
+                        ? obstacleTopY : newPosition.y > obstacleBottomY
+                            ? obstacleBottomY : newPosition.y
+                )
+
+                const distance = Math.sqrt(
+                    Math.pow(collisionPoint.x - newPosition.x, 2)
+                    + Math.pow(collisionPoint.y - newPosition.y, 2)
+                )
+
+                const intersectionDepth = options.particleRadius - distance
+
+                if (intersectionDepth > 0) {
+                    //if particle intersects obstacle, move particle away
+
+                    const newDx = (newPosition.x - collisionPoint.x) / distance
+                    const newDy = (newPosition.y - collisionPoint.y) / distance
+                    newPosition = Vec2.new(
+                        newPosition.x + newDx * intersectionDepth,
+                        newPosition.y + newDy * intersectionDepth,
+                    )
+                }
+
+
                 const reflectedVector = Physics.applyFriction(
-                    Vec2.reflectFromNormal(newVelocity, normal), options
+                    Vec2.reflectFromPoint(collisionPoint, newPosition, newVelocity), options
                 )
 
                 newVelocity = reflectedVector

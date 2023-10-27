@@ -11,7 +11,6 @@ export interface Vector2 {
 
 export interface Obstacle {
     data: [XCoordinate, YCoordinate, Width, Height]
-    normal: Vector2,
 }
 
 export type Width = number
