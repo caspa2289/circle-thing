@@ -15,11 +15,12 @@ export class EntityManager {
         this.obstacles = []
     }
 
-    addParticle = (x: number, y: number, xv: number, yv: number) => {
+    addParticle = (x: number, y: number, xv: number, yv: number, color: string) => {
         this.particles.push({
             position: Vec2.new(x, y),
             velocity: Vec2.new(xv, yv),
-            relativeVelocity: Vec2.new(0, 0)
+            relativeVelocity: Vec2.new(0, 0),
+            color
         })
     }
 

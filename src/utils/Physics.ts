@@ -25,6 +25,7 @@ export class Physics {
             const newRelativeVelocity = Physics.getRelativeVelocity(newVelocity, app)
 
             entityManager.particles[i] = {
+                ...entityManager.particles[i],
                 position: newPosition,
                 velocity: newVelocity,
                 relativeVelocity: newRelativeVelocity
@@ -38,7 +39,7 @@ export class Physics {
         options: Options,
         app: App
     ): Particle {
-        const { position, velocity, relativeVelocity } = entityManager.particles[particleIndex]
+        const { position, velocity, relativeVelocity, color } = entityManager.particles[particleIndex]
 
         let [ newPosition, newVelocity, newRelativeVelocity ] = [ position, velocity, relativeVelocity ]
 
@@ -173,14 +174,19 @@ export class Physics {
                 newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector1, app)
 
                 entityManager.particles[i] = {
-                    position: entityManager.particles[i].position,
+                    ...entityManager.particles[i],
                     velocity: reflectedVector2,
                     relativeVelocity: Physics.getRelativeVelocity(reflectedVector2, app)
                 }
             }
         }
 
-        return { position: newPosition, velocity: newVelocity, relativeVelocity: newRelativeVelocity }
+        return {
+            position: newPosition,
+            velocity: newVelocity,
+            relativeVelocity: newRelativeVelocity,
+            color
+        }
     }
 
     static applyFriction(v: Vector2, options: Options): Vector2 {
