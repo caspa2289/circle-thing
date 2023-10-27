@@ -81,6 +81,25 @@ export class Physics {
                             ? obstacleBottomY : newPosition.y
                 )
 
+                const distance = Math.sqrt(
+                    Math.pow(collisionPoint.x - newPosition.x, 2)
+                    + Math.pow(collisionPoint.y - newPosition.y, 2)
+                )
+
+                const intersectionDepth = options.particleRadius - distance
+
+                if (intersectionDepth > 0) {
+                    //if particle intersects obstacle, move particle away
+
+                    const newDx = (newPosition.x - collisionPoint.x) / distance
+                    const newDy = (newPosition.y - collisionPoint.y) / distance
+                    newPosition = Vec2.new(
+                        newPosition.x + newDx * intersectionDepth,
+                        newPosition.y + newDy * intersectionDepth,
+                    )
+                }
+
+
                 const reflectedVector = Physics.applyFriction(
                     Vec2.reflectFromPoint(collisionPoint, newPosition, newVelocity), options
                 )
