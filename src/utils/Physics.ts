@@ -49,14 +49,12 @@ export class Physics {
                 const rectHalfWidth = rectWidth / 2
                 const rectHalfHeight = rectHeight / 2
 
-                const rectCenterX = Math.abs(rectX - rectHalfWidth)
-                const rectCenterY = Math.abs(rectY - rectHalfHeight)
+                const rectCenterX = Math.abs(rectX + rectHalfWidth)
+                const rectCenterY = Math.abs(rectY + rectHalfHeight)
                 const circleDistance = Vec2.new(
                     Math.abs(newPosition.x - rectCenterX),
                     Math.abs(newPosition.y - rectCenterY)
                 )
-
-                //FIXME: formula seems to be inaccurate for bottom and right obstacles, not sure why
 
                 if (circleDistance.x > rectHalfWidth + options.particleRadius) return false
                 if (circleDistance.y > rectHalfHeight + options.particleRadius) return false
