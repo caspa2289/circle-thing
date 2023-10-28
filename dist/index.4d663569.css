@@ -1,0 +1,9 @@
+html, body, canvas {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/*# sourceMappingURL=index.4d663569.css.map */
