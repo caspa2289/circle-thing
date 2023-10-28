@@ -197,8 +197,8 @@ export class Physics {
     static getRelativeVelocity(v: Vector2, app: App): Vector2 {
         //FIXME: изменение дельта тайма меняет результат симуляции, надо решать с интерполяцией что-то
         return {
-            x: v.x / app.deltaTime,
-            y: v.y / app.deltaTime
+            x: v.x * app.deltaTime,
+            y: v.y * app.deltaTime
         }
     }
 }
