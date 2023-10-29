@@ -8,27 +8,16 @@ export class Physics {
     static prepareFrame(entityManager: EntityManager, options: Options, app: App) {
         for (let i = 0; i < entityManager.particles.length; i++) {
 
-            const {
-                position,
-                velocity,
-                relativeVelocity
-            } = this._resolveParticleCollisions(i, entityManager, options, app)
+            const { position, velocity } = this._resolveParticleCollisions(i, entityManager, options)
 
-            const newPosition = {
-                x: position.x + relativeVelocity.x,
-                y: position.y + relativeVelocity.y
-            }
-            const newVelocity = {
-                x: velocity.x,
-                y: velocity.y + options.gravity
-            }
+            const newVelocity = Vec2.new(velocity.x, velocity.y + options.gravity)
             const newRelativeVelocity = Physics.getRelativeVelocity(newVelocity, app)
 
             entityManager.particles[i] = {
                 ...entityManager.particles[i],
-                position: newPosition,
-                velocity: newVelocity,
-                relativeVelocity: newRelativeVelocity
+                velocity: Vec2.new(velocity.x, velocity.y + options.gravity),
+                relativeVelocity: newRelativeVelocity,
+                position: Vec2.new(position.x + newRelativeVelocity.x, position.y + newRelativeVelocity.y),
             }
         }
     }
@@ -37,11 +26,10 @@ export class Physics {
         particleIndex: number,
         entityManager: EntityManager,
         options: Options,
-        app: App
     ): Particle {
-        const { position, velocity, relativeVelocity, color } = entityManager.particles[particleIndex]
+        const { position, velocity } = entityManager.particles[particleIndex]
 
-        let [ newPosition, newVelocity, newRelativeVelocity ] = [ position, velocity, relativeVelocity ]
+        let [ newPosition, newVelocity ] = [ position, velocity ]
 
         for (let i = 0; i < entityManager.obstacles.length; i++) {
             const { data: [ rectX, rectY, rectWidth, rectHeight ] } = entityManager.obstacles[i]
@@ -106,7 +94,6 @@ export class Physics {
                 )
 
                 newVelocity = reflectedVector
-                newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector, app)
             }
         }
 
@@ -116,7 +103,6 @@ export class Physics {
             const {
                 position: cPosition,
                 velocity: cVelocity,
-                // relativeVelocity: cRelativeVelocity
             } = entityManager.particles[i]
 
             //check collision
@@ -171,21 +157,18 @@ export class Physics {
                 }
 
                 newVelocity = reflectedVector1
-                newRelativeVelocity = Physics.getRelativeVelocity(reflectedVector1, app)
 
                 entityManager.particles[i] = {
                     ...entityManager.particles[i],
                     velocity: reflectedVector2,
-                    relativeVelocity: Physics.getRelativeVelocity(reflectedVector2, app)
                 }
             }
         }
 
         return {
+            ...entityManager.particles[particleIndex],
             position: newPosition,
             velocity: newVelocity,
-            relativeVelocity: newRelativeVelocity,
-            color
         }
     }
 
@@ -197,8 +180,8 @@ export class Physics {
     static getRelativeVelocity(v: Vector2, app: App): Vector2 {
         //FIXME: изменение дельта тайма меняет результат симуляции, надо решать с интерполяцией что-то
         return {
-            x: v.x / app.deltaTime,
-            y: v.y / app.deltaTime
+            x: v.x * app.deltaTime,
+            y: v.y * app.deltaTime
         }
     }
 }
