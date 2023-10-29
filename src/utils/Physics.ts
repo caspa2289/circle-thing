@@ -6,21 +6,36 @@ import { EntityManager } from './EntityManager'
 
 export class Physics {
     static prepareFrame(entityManager: EntityManager, options: Options, app: App) {
-        for (let i = 0; i < entityManager.particles.length; i++) {
+        const iterationsMax = options.physicsIterations
 
-            Physics._resolveCollisions(i, entityManager, options)
+        //FIXME: нужно оптимизировать поиск коллизий через проекцию на оси
+        /**
+         * FIXME: нужно переделать колижен респонсы чтобы они затрагивали только текущий элемент, иначе нельзя будет запараллелить вычисления
+         * По всей видимости, из-за этого также частицы иногда слипаются вместо того чтобы разъезжаться
+         * Сейчас симуляция стабильно работает при радиусе партиклов >5 на моей машине, хотелось бы поменьше.
+         * Нужна оптимизация + увеличение итераций физики
+         */
+        for (let x = 0; x < iterationsMax; x++) {
 
-            const { position, velocity } = entityManager.particles[i]
+            for (let i = 0; i < entityManager.particles.length; i++) {
 
-            const newVelocity = Vec2.new(velocity.x, velocity.y + options.gravity)
-            const newRelativeVelocity = Physics.getRelativeVelocity(newVelocity, app)
-            const newPosition = Vec2.new(position.x + newRelativeVelocity.x, position.y + newRelativeVelocity.y)
+                Physics._resolveCollisions(i, entityManager, options)
 
-            entityManager.particles[i] = {
-                ...entityManager.particles[i],
-                velocity: newVelocity,
-                relativeVelocity: newRelativeVelocity,
-                position: newPosition,
+                const {
+                    position,
+                    velocity
+                } = entityManager.particles[i]
+
+                const newVelocity = Vec2.new(velocity.x, velocity.y + options.gravity)
+                const newRelativeVelocity = Physics.getRelativeVelocity(newVelocity, app, iterationsMax)
+                const newPosition = Vec2.new(position.x + newRelativeVelocity.x, position.y + newRelativeVelocity.y)
+
+                entityManager.particles[i] = {
+                    ...entityManager.particles[i],
+                    velocity: newVelocity,
+                    relativeVelocity: newRelativeVelocity,
+                    position: newPosition,
+                }
             }
         }
     }
@@ -180,7 +195,7 @@ export class Physics {
     private static _resolveCollisions(
         particleIndex: number,
         entityManager: EntityManager,
-        options: Options,
+        options: Options
     ) {
         Physics._resolveObstacleCollisions(particleIndex, entityManager, options)
         Physics._resolveParticleCollisions(particleIndex, entityManager, options)
@@ -190,11 +205,10 @@ export class Physics {
         return Vec2.multiplyScalar(v, options.friction)
     }
 
-    static getRelativeVelocity(v: Vector2, app: App): Vector2 {
-        //FIXME: изменение дельта тайма меняет результат симуляции, надо решать с интерполяцией что-то
+    static getRelativeVelocity(v: Vector2, app: App, iterationsMax: number): Vector2 {
         return {
-            x: v.x * app.deltaTime,
-            y: v.y * app.deltaTime
+            x: v.x * app.deltaTime / iterationsMax,
+            y: v.y * app.deltaTime / iterationsMax
         }
     }
 }

@@ -6,9 +6,9 @@ export class Options {
         circleAngle: number
     }
     timeSpeedCoefficient: number
-    targetFrameTime: number
     friction: number
     debug: boolean
+    physicsIterations: number
     private static _instance?: Options
 
     //FIXME: добавить возможность настраивать вещи налету
@@ -17,14 +17,15 @@ export class Options {
             return Options._instance
         }
         Options._instance = this
-        this.particleRadius = 20
+        this.particleRadius = 5
         this.gravity = 9.8
         this.precalc = {
             radiusFactor: this.particleRadius / (this.particleRadius + this.particleRadius),
             circleAngle: 2 * Math.PI
         }
-        this.timeSpeedCoefficient = 30
-        this.targetFrameTime = 1000 / 60
+        //FIXME: this is basically a magic number and i have no idea why it works
+        this.timeSpeedCoefficient = 1100
+        this.physicsIterations = 10
         this.friction = 0.90
         this.debug = !!debug
     }
