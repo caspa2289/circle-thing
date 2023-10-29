@@ -8,11 +8,11 @@ const options = new Options({ debug: false })
 
 const entityManager = new EntityManager()
 
-for (let i = 0; i <= 9; i++) {
-    const x = 45 * (i + 1 % 8)
-    const y = 60 * (i + 1)
+for (let i = 0; i <= 29; i++) {
+    const x = 13 * (i + 1 % 8)
+    const y = 15 * (i + 1)
 
-    entityManager.addParticle(x, y, i, 0, COLORS[Math.floor(Math.random() * 5)] )
+    entityManager.addParticle(x, y, i + 5, 0, COLORS[Math.floor(Math.random() * 5)] )
 }
 
 entityManager.addObstacle( 0, 800, 510, 20)
