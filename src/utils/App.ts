@@ -51,7 +51,7 @@ export class App {
     }
 
     update(frameTime: number) {
-        this.rawDeltaTime = (frameTime - this.lastFrameTime) / this.options.targetFrameTime
+        this.rawDeltaTime = (frameTime - this.lastFrameTime) / 200
         this.lastFrameTime = frameTime
 
         window.requestAnimationFrame(this.update)
@@ -66,7 +66,7 @@ export class App {
     }
 
     get deltaTime() {
-        return this.rawDeltaTime * this.options.timeSpeedCoefficient
+        return this.rawDeltaTime
     }
 
 }
