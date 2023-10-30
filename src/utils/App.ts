@@ -51,6 +51,7 @@ export class App {
     }
 
     update(frameTime: number) {
+        console.log(`FPS: ~${1000/(frameTime - this.lastFrameTime)}`)
         this.rawDeltaTime = (frameTime - this.lastFrameTime) / this.options.timeSpeedCoefficient
         this.lastFrameTime = frameTime
 
