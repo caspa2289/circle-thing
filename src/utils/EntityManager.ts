@@ -20,6 +20,7 @@ export class EntityManager {
             position: Vec2.new(x, y),
             velocity: Vec2.new(xv, yv),
             relativeVelocity: Vec2.new(0, 0),
+            id: this.particles.length,
             color
         })
     }

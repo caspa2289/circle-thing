@@ -3,6 +3,7 @@ export interface Particle {
     velocity: Vector2
     relativeVelocity: Vector2
     color: string
+    id: number
 }
 
 export interface Vector2 {
