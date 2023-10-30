@@ -15,6 +15,57 @@ export class Physics {
          * Сейчас симуляция стабильно работает при радиусе партиклов >5 на моей машине, хотелось бы поменьше.
          * Нужна оптимизация + увеличение итераций физики
          */
+
+        //FIXME: заменить на сортировку пузырьком
+        const projectionXSorted = [ ...entityManager.particles ].sort((a, b) => {
+            return a.position.x - b.position.x
+        })
+
+        console.log(projectionXSorted)
+
+        const axisPositionToInterval = (axisPos: number) => ([
+            axisPos - options.particleRadius,
+            axisPos + options.particleRadius
+        ])
+
+        const possibleCollisions = []
+
+        for (let i = 0; i < projectionXSorted.length; i++) {
+            const element = projectionXSorted[i]
+
+            if (!element.position.x) {
+                continue
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [ _, endX ] = axisPositionToInterval(element.position.x)
+            const [ startY, endY ] = axisPositionToInterval(element.position.y)
+            
+            for (let y = i; y < projectionXSorted.length; y++) {
+                if (y === i) {
+                    continue
+                }
+
+                const item = projectionXSorted[y]
+
+                if (!item?.position?.x) {
+                    continue
+                }
+
+                const [ itemStartX ] = axisPositionToInterval(item.position.x)
+
+                //Лишние коллижены из-за того, что считаются элементы не по порядку
+                if (itemStartX <= endX) {
+                    const [ itemStartY, itemEndY ] = axisPositionToInterval(item.position.y)
+                    if (itemStartY <= endY && startY <= itemEndY) {
+                        possibleCollisions.push([ element.id, item.id ])
+                    }
+                }
+            }
+        }
+
+        console.log(possibleCollisions)
+
         for (let x = 0; x < iterationsMax; x++) {
 
             for (let i = 0; i < entityManager.particles.length; i++) {
