@@ -2,7 +2,7 @@ import { Obstacle, Particle } from '../types/common'
 import { Vec2 } from './Vector2'
 
 export class EntityManager {
-    readonly particles: Particle[]
+    public particles: Particle[]
     readonly obstacles: Obstacle[]
     private static _instance?: EntityManager
 
@@ -31,4 +31,12 @@ export class EntityManager {
             data: [ x, y, w, h ],
         })
     }
+
+    // get particles() {
+    //     return this.particles
+    // }
+    //
+    // set particles(newParticles: Particle[]) {
+    //     this.particles = newParticles
+    // }
 }
