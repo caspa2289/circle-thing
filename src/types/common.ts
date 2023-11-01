@@ -1,8 +1,11 @@
 export interface Particle {
+    id: number
+    radius: number
+    mass: number
+    color: string
     position: Vector2
     velocity: Vector2
     relativeVelocity: Vector2
-    color: string
 }
 
 export interface Vector2 {

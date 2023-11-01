@@ -1,6 +1,7 @@
 import { Options } from './utils/Options'
 import { EntityManager } from './utils/EntityManager'
 import { App } from './utils/App'
+import {Vec2} from './utils/Vector2'
 
 const options = new Options({ debug: false })
 
@@ -16,8 +17,33 @@ app.init()
 
 setInterval(() => {
     if (entityManager.particles.length >= 2000) return
-    entityManager.addParticle(30, 30, 5, 0, 'green')
-    entityManager.addParticle(60, 30, 5, 0, 'red')
-    entityManager.addParticle(90, 30, 5, 0, 'blue')
-    entityManager.addParticle(120, 30, 5, 0, 'pink')
+
+    entityManager.addParticle({
+        position: Vec2.new(30, 30),
+        velocity: Vec2.new(5, 0),
+        color: 'green',
+        mass: 1,
+        radius: 5,
+    })
+    entityManager.addParticle({
+        position: Vec2.new(60, 30),
+        velocity: Vec2.new(5, 0),
+        color: 'red',
+        mass: 1,
+        radius: 5,
+    })
+    entityManager.addParticle({
+        position: Vec2.new(90, 30),
+        velocity: Vec2.new(5, 0),
+        color: 'blue',
+        mass: 1,
+        radius: 5,
+    })
+    entityManager.addParticle({
+        position: Vec2.new(120, 30),
+        velocity: Vec2.new(5, 0),
+        color: 'pink',
+        mass: 1,
+        radius: 5,
+    })
 }, 150)
