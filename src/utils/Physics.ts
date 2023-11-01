@@ -40,7 +40,7 @@ export class Physics {
         }
     }
 
-    private static _particleIntersectsObstacle(obstacle: Obstacle, position: Vector2, options: Options) {
+    private static _particleIntersectsObstacle(obstacle: Obstacle, position: Vector2, radius: number) {
         const { data: [ rectX, rectY, rectWidth, rectHeight ] } = obstacle
 
         const rectHalfWidth = rectWidth / 2
@@ -53,14 +53,14 @@ export class Physics {
             Math.abs(position.y - rectCenterY)
         )
 
-        if (circleDistance.x > rectHalfWidth + options.particleRadius) return false
-        if (circleDistance.y > rectHalfHeight + options.particleRadius) return false
+        if (circleDistance.x > rectHalfWidth + radius) return false
+        if (circleDistance.y > rectHalfHeight + radius) return false
         if (circleDistance.x <= rectHalfWidth) return true
         if (circleDistance.y <= rectHalfHeight) return true
 
         const cornerDistanceSquared = (circleDistance.x - rectHalfWidth) * 2 + (circleDistance.y - rectHalfHeight) * 2
 
-        return cornerDistanceSquared <= options.particleRadius * 2
+        return cornerDistanceSquared <= radius * 2
     }
 
     //FIXME: Separate collision detection from collision response to allow for event listeners
@@ -72,9 +72,9 @@ export class Physics {
         for (let i = 0; i < entityManager.obstacles.length; i++) {
 
             // eslint-disable-next-line prefer-const
-            let { position: newPosition, velocity: newVelocity } = entityManager.particles[particleIndex]
+            let { position: newPosition, velocity: newVelocity, radius } = entityManager.particles[particleIndex]
 
-            if (Physics._particleIntersectsObstacle(entityManager.obstacles[i], newPosition, options)) {
+            if (Physics._particleIntersectsObstacle(entityManager.obstacles[i], newPosition, radius)) {
                 const { data: [ rectX, rectY, rectWidth, rectHeight ] } = entityManager.obstacles[i]
 
                 const obstacleLeftX = rectX
@@ -96,7 +96,7 @@ export class Physics {
                     + Math.pow(collisionPoint.y - newPosition.y, 2)
                 )
 
-                const intersectionDepth = options.particleRadius - distance
+                const intersectionDepth = radius - distance
 
                 if (intersectionDepth > 0) {
                     //if particle intersects obstacle, move particle away
@@ -125,29 +125,23 @@ export class Physics {
         entityManager: EntityManager,
         options: Options
     ) {
-        let {
-            position: newPosition,
-            // eslint-disable-next-line prefer-const
-            velocity: newVelocity
-        } = entityManager.particles[particleIndex]
+        // eslint-disable-next-line prefer-const
+        let { position: newPosition, velocity: newVelocity, radius } = entityManager.particles[particleIndex]
 
         for (let i = 0; i < entityManager.particles.length; i++) {
             if (i <= particleIndex) continue
 
-            let {
-                position: cPosition,
-                // eslint-disable-next-line prefer-const
-                velocity: cVelocity,
-            } = entityManager.particles[i]
+            // eslint-disable-next-line prefer-const
+            let { position: cPosition, velocity: cVelocity, radius: cRadius} = entityManager.particles[i]
 
             //check collision
             const distanceX = cPosition.x - newPosition.x
             const distanceY = cPosition.y - newPosition.y
             const centerDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
 
-            if (centerDistance < options.particleRadius * 2) {
+            if (centerDistance < radius * 2) {
                 //check if particles intersect
-                const intersectionDepth = options.particleRadius + options.particleRadius - centerDistance
+                const intersectionDepth = radius + cRadius - centerDistance
 
                 //if they intersect, move them apart evenly
                 if (intersectionDepth > 0) {
@@ -166,8 +160,8 @@ export class Physics {
                 }
 
                 const collisionPoint = Vec2.add(
-                    Vec2.multiplyScalar(newPosition, options.precalc.radiusFactor),
-                    Vec2.multiplyScalar(cPosition, options.precalc.radiusFactor)
+                    Vec2.multiplyScalar(newPosition, radius / (radius + radius)),
+                    Vec2.multiplyScalar(cPosition, cRadius / (cRadius + cRadius))
                 )
 
                 entityManager.particles[particleIndex] = {

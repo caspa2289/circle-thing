@@ -1,10 +1,6 @@
 export class Options {
-    particleRadius: number
     gravity: number
-    precalc: {
-        radiusFactor: number,
-        circleAngle: number
-    }
+    precalc: { circleAngle: number }
     timeSpeedCoefficient: number
     friction: number
     debug: boolean
@@ -17,12 +13,8 @@ export class Options {
             return Options._instance
         }
         Options._instance = this
-        this.particleRadius = 5
         this.gravity = 9.8
-        this.precalc = {
-            radiusFactor: this.particleRadius / (this.particleRadius + this.particleRadius),
-            circleAngle: 2 * Math.PI
-        }
+        this.precalc = { circleAngle: 2 * Math.PI }
         //FIXME: this is basically a magic number and i have no idea why it works
         this.timeSpeedCoefficient = 1
         this.physicsIterations = 10
