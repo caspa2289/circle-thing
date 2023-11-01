@@ -16,6 +16,7 @@ export class Renderer {
     }
 
     private static _drawObstacles(app: App, obstacles: Obstacle[]) {
+        app.context.fillStyle = 'grey'
         obstacles.forEach(({ data }) => {
             app.context.fillRect(...data)
         })

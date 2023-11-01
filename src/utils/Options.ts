@@ -24,7 +24,7 @@ export class Options {
             circleAngle: 2 * Math.PI
         }
         //FIXME: this is basically a magic number and i have no idea why it works
-        this.timeSpeedCoefficient = 1100
+        this.timeSpeedCoefficient = 1
         this.physicsIterations = 10
         this.friction = 0.90
         this.debug = !!debug
