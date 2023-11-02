@@ -46,4 +46,11 @@ setInterval(() => {
         mass: 1,
         radius: 5,
     })
+    entityManager.addParticle({
+        position: Vec2.new(150, 30),
+        velocity: Vec2.new(5, 0),
+        color: 'pink',
+        mass: 1,
+        radius: 5,
+    })
 }, 150)

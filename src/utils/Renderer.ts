@@ -11,8 +11,16 @@ export class Renderer {
             app.context.fillStyle = color
             app.context.arc(position.x, position.y, radius, 0, options.precalc.circleAngle)
             app.context.fill()
+            // app.context.fillStyle = 'black'
+            // app.context.fillText(String(id), position.x, position.y)
         })
         this._drawObstacles(app, entityManager.obstacles)
+        this._drawDebugInfo(app, entityManager)
+    }
+
+    private static _drawDebugInfo(app: App, entityManager: EntityManager) {
+        app.context.fillStyle = 'black'
+        app.context.fillText(String(entityManager.particles.length), 10, 10)
     }
 
     private static _drawObstacles(app: App, obstacles: Obstacle[]) {
