@@ -13,59 +13,63 @@ export class Physics {
          * Сейчас симуляция стабильно работает при радиусе партиклов >5 на моей машине, хотелось бы поменьше.
          * Нужна оптимизация + увеличение итераций физики
          */
-
-        //FIXME: реализовать отсеивание по Y
         for (let x = 0; x < iterationsMax; x++) {
 
-            // const possibleCollisions = []
-            //
-            // const sortedByX = [ ...entityManager.particles ].sort((a, b) => {
-            //     return a.position.x - b.position.x
-            // })
-            //
-            // // console.log(sortedByX)
-            //
-            // for (let i = 0; i < sortedByX.length; i++) {
-            //     // console.log(`i: ${i}`)
-            //
-            //     const item = sortedByX[i]
-            //     const itemEndX = item.position.x + item.radius
-            //     const itemStartY = item.position.y - item.radius
-            //     const itemEndY = item.position.y + item.radius
-            //
-            //     // console.log(item)
-            //
-            //     let interval = []
-            //
-            //     for (let z = i + 1; z < sortedByX.length; z++) {
-            //         const otherItem = sortedByX[z]
-            //         const otherItemStartX = otherItem.position.x - item.radius
-            //
-            //         // console.log(`z ${z}`)
-            //         // console.log(otherItem)
-            //
-            //         if (otherItemStartX < itemEndX) {
-            //             // console.log(interval)
-            //             if (interval.includes(item.id)) {
-            //                 interval.push(otherItem.id)
-            //             } else {
-            //                 interval.push(item.id)
-            //                 interval.push(otherItem.id)
-            //             }
-            //
-            //             if (z === sortedByX.length - 1) {
-            //                 possibleCollisions.push(interval)
-            //             }
-            //         } else {
-            //             possibleCollisions.push(interval)
-            //             interval = []
-            //             i = z - 1
-            //             break
-            //         }
-            //     }
-            // }
+            const possibleCollisions = [
+                [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], []
+                ],
+            ]
 
-            // console.log(possibleCollisions)
+            //разбиение на клетки работает, насколько я могу судить.
+            //вроде как единственная проблема с текущим алгоритмом - это размер партиклов, если он больше клетки, то смэрть
+            for (let i = 0; i < entityManager.particles.length; i++) {
+                const {
+                    position,
+                    id,
+                    radius
+                } = entityManager.particles[i]
+
+                const xStart = Math.floor((position.x - radius) / app.gridWidth)
+                const xEnd = Math.floor((position.x + radius) / app.gridWidth)
+
+                const yStart = Math.floor((position.y - radius) / app.gridHeight)
+                const yEnd = Math.floor((position.y + radius) / app.gridHeight)
+
+                possibleCollisions[xStart][yStart].push(id)
+
+                if (xStart !== xEnd) {
+                    possibleCollisions[xEnd][yStart].push(id)
+                }
+
+                if (yEnd !== yStart) {
+                    possibleCollisions[xStart][yEnd].push(id)
+
+                    if (xStart !== xEnd) {
+                        possibleCollisions[xEnd][yEnd].push(id)
+                    }
+                }
+            }
+
+            console.log(possibleCollisions)
 
             for (let i = 0; i < entityManager.particles.length; i++) {
 

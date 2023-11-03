@@ -11,8 +11,7 @@ export class Renderer {
             app.context.fillStyle = color
             app.context.arc(position.x, position.y, radius, 0, options.precalc.circleAngle)
             app.context.fill()
-            // app.context.fillStyle = 'black'
-            // app.context.fillText(String(id), position.x, position.y)
+
         })
         this._drawObstacles(app, entityManager.obstacles)
         this._drawDebugInfo(app, entityManager)
@@ -21,6 +20,27 @@ export class Renderer {
     private static _drawDebugInfo(app: App, entityManager: EntityManager) {
         app.context.fillStyle = 'black'
         app.context.fillText(String(entityManager.particles.length), 10, 10)
+
+        // TODO: для каждого партикла
+        // app.context.fillStyle = 'black'
+        // app.context.fillText(String(id), position.x, position.y)
+
+        const { gridWidth, gridHeight } = app
+
+        for (let i = 0; i <= 10; i++) {
+            app.context.strokeStyle = 'lightgreen'
+            app.context.beginPath()
+            app.context.moveTo((i + 1) * gridWidth, 0)
+            app.context.lineTo((i + 1) * gridWidth, app.canvas.clientHeight)
+            app.context.stroke()
+
+            app.context.beginPath()
+            app.context.moveTo( 0, (i + 1) * gridHeight)
+            app.context.lineTo(app.canvas.clientWidth, (i + 1) * gridHeight )
+            app.context.stroke()
+
+            app.context.fillText(`${i}, ${i}`, (i + 0.45) * gridWidth, (i + 0.5) * gridHeight)
+        }
     }
 
     private static _drawObstacles(app: App, obstacles: Obstacle[]) {

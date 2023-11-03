@@ -15,8 +15,7 @@ export class Options {
         Options._instance = this
         this.gravity = 9.8
         this.precalc = { circleAngle: 2 * Math.PI }
-        //FIXME: this is basically a magic number and i have no idea why it works
-        this.timeSpeedCoefficient = 1
+        this.timeSpeedCoefficient = 0.1
         this.physicsIterations = 10
         this.friction = 0.90
         this.debug = !!debug

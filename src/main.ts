@@ -1,7 +1,7 @@
 import { Options } from './utils/Options'
 import { EntityManager } from './utils/EntityManager'
 import { App } from './utils/App'
-import {Vec2} from './utils/Vector2'
+import { Vec2 } from './utils/Vector2'
 
 const options = new Options({ debug: false })
 
@@ -53,4 +53,4 @@ setInterval(() => {
         mass: 1,
         radius: 5,
     })
-}, 150)
+}, 1000)

@@ -11,6 +11,8 @@ export class App {
     rawDeltaTime: number
     lastFrameTime: number
     isPaused: boolean
+    gridHeight: number
+    gridWidth: number
     private static _instance?: App
     readonly entityManager: EntityManager
     readonly options: Options
@@ -28,6 +30,9 @@ export class App {
         this.isPaused = false
         this.options = options
         this.entityManager = entityManager
+        //TODO: сделать настраиваемым
+        this.gridWidth = this.canvas.clientWidth / 10
+        this.gridHeight = this.canvas.clientHeight / 10
 
         this.update = this.update.bind(this)
         this.onPause = this.onPause.bind(this)
