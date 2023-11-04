@@ -17,6 +17,8 @@ export interface Obstacle {
     data: [XCoordinate, YCoordinate, Width, Height]
 }
 
+export type PossibleCollisionsData = Array<Array<Array<number>>>
+
 export type Width = number
 export type Height = number
 export type XCoordinate = number

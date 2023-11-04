@@ -31,8 +31,8 @@ export class App {
         this.options = options
         this.entityManager = entityManager
         //TODO: сделать настраиваемым
-        this.gridWidth = this.canvas.clientWidth / 10
-        this.gridHeight = this.canvas.clientHeight / 10
+        this.gridWidth = this.canvas.clientWidth / 20
+        this.gridHeight = this.canvas.clientHeight / 20
 
         this.update = this.update.bind(this)
         this.onPause = this.onPause.bind(this)
@@ -42,17 +42,18 @@ export class App {
         this.canvas.width = document.body.clientWidth * this.dpr
         this.canvas.height = document.body.clientHeight * this.dpr
 
-        if (this.options.debug) {
-            window.addEventListener('click', () => {
-                this.rawDeltaTime = 1
-                this.lastFrameTime = 1
-                Physics.prepareFrame(this.entityManager, this.options, this)
-                Renderer.drawFrame(this, this.options, this.entityManager)
-            })
-        } else {
-            window.addEventListener('click', this.onPause)
-            window.requestAnimationFrame(this.update)
-        }
+        //TODO: integrate stepping
+        // if (this.options.debug) {
+        //     window.addEventListener('click', () => {
+        //         this.rawDeltaTime = 1
+        //         this.lastFrameTime = 1
+        //         Physics.prepareFrame(this.entityManager, this.options, this)
+        //         Renderer.drawFrame(this, this.options, this.entityManager)
+        //     })
+        // }
+        window.addEventListener('click', this.onPause)
+        window.requestAnimationFrame(this.update)
+
     }
 
     update(frameTime: number) {

@@ -15,8 +15,8 @@ export class Options {
         Options._instance = this
         this.gravity = 9.8
         this.precalc = { circleAngle: 2 * Math.PI }
-        this.timeSpeedCoefficient = 0.1
-        this.physicsIterations = 10
+        this.timeSpeedCoefficient = 1
+        this.physicsIterations = 8
         this.friction = 0.90
         this.debug = !!debug
     }

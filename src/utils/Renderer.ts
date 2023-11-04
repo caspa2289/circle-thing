@@ -14,7 +14,9 @@ export class Renderer {
 
         })
         this._drawObstacles(app, entityManager.obstacles)
-        this._drawDebugInfo(app, entityManager)
+        if (options.debug) {
+            this._drawDebugInfo(app, entityManager)
+        }
     }
 
     private static _drawDebugInfo(app: App, entityManager: EntityManager) {
@@ -27,7 +29,8 @@ export class Renderer {
 
         const { gridWidth, gridHeight } = app
 
-        for (let i = 0; i <= 10; i++) {
+        //FIXME: make grid resolution choosable
+        for (let i = 0; i <= 20; i++) {
             app.context.strokeStyle = 'lightgreen'
             app.context.beginPath()
             app.context.moveTo((i + 1) * gridWidth, 0)

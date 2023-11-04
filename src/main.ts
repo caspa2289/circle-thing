@@ -53,4 +53,4 @@ setInterval(() => {
         mass: 1,
         radius: 5,
     })
-}, 1000)
+}, 150)
