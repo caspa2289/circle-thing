@@ -1,4 +1,4 @@
-import { Obstacle, Vector2 } from '../types/common'
+import { Obstacle, PossibleCollisionsData, Vector2 } from '../types/common'
 import { Vec2 } from './Vector2'
 import { Options } from './Options'
 import { App } from './App'
@@ -8,19 +8,95 @@ export class Physics {
     static prepareFrame(entityManager: EntityManager, options: Options, app: App) {
         const iterationsMax = options.physicsIterations
 
-        //FIXME: нужно оптимизировать поиск коллизий через проекцию на оси
         /**
-         * FIXME: нужно переделать колижен респонсы чтобы они затрагивали только текущий элемент, иначе нельзя будет запараллелить вычисления
-         * По всей видимости, из-за этого также частицы иногда слипаются вместо того чтобы разъезжаться
+         * FIXME: нужно переделать колижен респонсы чтобы они затрагивали только текущий интервал, иначе нельзя будет запараллелить вычисления
          * Сейчас симуляция стабильно работает при радиусе партиклов >5 на моей машине, хотелось бы поменьше.
          * Нужна оптимизация + увеличение итераций физики
          */
         for (let x = 0; x < iterationsMax; x++) {
 
+            //FIXME: figure out why Array constructor doesn`t work
+            const possibleCollisions: PossibleCollisionsData = [
+                [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ], [
+                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+                ],
+            ]
+
+            //разбиение на клетки работает, насколько я могу судить.
+            //вроде как единственная проблема с текущим алгоритмом - это размер партиклов, если он больше клетки, то смэрть
             for (let i = 0; i < entityManager.particles.length; i++) {
+                const {
+                    position,
+                    id,
+                    radius
+                } = entityManager.particles[i]
 
-                Physics._resolveCollisions(i, entityManager, options)
+                const xStart = Math.floor((position.x - radius) / app.gridWidth)
+                const xEnd = Math.floor((position.x + radius) / app.gridWidth)
 
+                const yStart = Math.floor((position.y - radius) / app.gridHeight)
+                const yEnd = Math.floor((position.y + radius) / app.gridHeight)
+
+                possibleCollisions[xStart][yStart].push(id)
+
+                if (xStart !== xEnd) {
+                    possibleCollisions[xEnd][yStart].push(id)
+                }
+
+                if (yEnd !== yStart) {
+                    possibleCollisions[xStart][yEnd].push(id)
+
+                    if (xStart !== xEnd) {
+                        possibleCollisions[xEnd][yEnd].push(id)
+                    }
+                }
+            }
+
+            for (let i = 0; i < entityManager.particles.length; i++) {
+                Physics._resolveObstacleCollisions(i, entityManager, options)
+            }
+
+            Physics._resolveParticleCollisions(entityManager, options, possibleCollisions)
+
+            for (let i = 0; i <entityManager.particles.length; i++) {
                 const {
                     position,
                     velocity
@@ -40,7 +116,7 @@ export class Physics {
         }
     }
 
-    private static _particleIntersectsObstacle(obstacle: Obstacle, position: Vector2, options: Options) {
+    private static _particleIntersectsObstacle(obstacle: Obstacle, position: Vector2, radius: number) {
         const { data: [ rectX, rectY, rectWidth, rectHeight ] } = obstacle
 
         const rectHalfWidth = rectWidth / 2
@@ -53,28 +129,28 @@ export class Physics {
             Math.abs(position.y - rectCenterY)
         )
 
-        if (circleDistance.x > rectHalfWidth + options.particleRadius) return false
-        if (circleDistance.y > rectHalfHeight + options.particleRadius) return false
+        if (circleDistance.x > rectHalfWidth + radius) return false
+        if (circleDistance.y > rectHalfHeight + radius) return false
         if (circleDistance.x <= rectHalfWidth) return true
         if (circleDistance.y <= rectHalfHeight) return true
 
         const cornerDistanceSquared = (circleDistance.x - rectHalfWidth) * 2 + (circleDistance.y - rectHalfHeight) * 2
 
-        return cornerDistanceSquared <= options.particleRadius * 2
+        return cornerDistanceSquared <= radius * 2
     }
 
     //FIXME: Separate collision detection from collision response to allow for event listeners
     private static _resolveObstacleCollisions(
         particleIndex: number,
         entityManager: EntityManager,
-        options: Options
+        options: Options,
     ) {
         for (let i = 0; i < entityManager.obstacles.length; i++) {
 
             // eslint-disable-next-line prefer-const
-            let { position: newPosition, velocity: newVelocity } = entityManager.particles[particleIndex]
+            let { position: newPosition, velocity: newVelocity, radius } = entityManager.particles[particleIndex]
 
-            if (Physics._particleIntersectsObstacle(entityManager.obstacles[i], newPosition, options)) {
+            if (Physics._particleIntersectsObstacle(entityManager.obstacles[i], newPosition, radius)) {
                 const { data: [ rectX, rectY, rectWidth, rectHeight ] } = entityManager.obstacles[i]
 
                 const obstacleLeftX = rectX
@@ -96,7 +172,7 @@ export class Physics {
                     + Math.pow(collisionPoint.y - newPosition.y, 2)
                 )
 
-                const intersectionDepth = options.particleRadius - distance
+                const intersectionDepth = radius - distance
 
                 if (intersectionDepth > 0) {
                     //if particle intersects obstacle, move particle away
@@ -121,84 +197,73 @@ export class Physics {
     }
 
     private static _resolveParticleCollisions(
-        particleIndex: number,
         entityManager: EntityManager,
-        options: Options
+        options: Options,
+        possibleCollisions: PossibleCollisionsData
     ) {
-        let {
-            position: newPosition,
-            // eslint-disable-next-line prefer-const
-            velocity: newVelocity
-        } = entityManager.particles[particleIndex]
+        possibleCollisions.forEach((column) => {
+            column.forEach((row) => {
+                row.forEach((particleIndex) => {
+                    // eslint-disable-next-line prefer-const
+                    let { position: newPosition, velocity: newVelocity, radius } = entityManager.particles[particleIndex]
 
-        for (let i = 0; i < entityManager.particles.length; i++) {
-            if (i <= particleIndex) continue
+                    row.forEach((anotherParticleIndex) => {
+                        if (anotherParticleIndex === particleIndex) return
 
-            let {
-                position: cPosition,
-                // eslint-disable-next-line prefer-const
-                velocity: cVelocity,
-            } = entityManager.particles[i]
+                        // eslint-disable-next-line prefer-const
+                        let { position: cPosition, velocity: cVelocity, radius: cRadius} = entityManager.particles[anotherParticleIndex]
 
-            //check collision
-            const distanceX = cPosition.x - newPosition.x
-            const distanceY = cPosition.y - newPosition.y
-            const centerDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
+                        const distanceX = cPosition.x - newPosition.x
+                        const distanceY = cPosition.y - newPosition.y
+                        const centerDistance = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
 
-            if (centerDistance < options.particleRadius * 2) {
-                //check if particles intersect
-                const intersectionDepth = options.particleRadius + options.particleRadius - centerDistance
+                        if (centerDistance < radius * 2) {
+                            //check if particles intersect
+                            const intersectionDepth = radius + cRadius - centerDistance
 
-                //if they intersect, move them apart evenly
-                if (intersectionDepth > 0) {
-                    const newDx = distanceX / centerDistance
-                    const newDy = distanceY / centerDistance
+                            //if they intersect, move them apart evenly
+                            if (intersectionDepth > 0) {
+                                const newDx = distanceX / centerDistance
+                                const newDy = distanceY / centerDistance
 
-                    newPosition = Vec2.new(
-                        newPosition.x - newDx * intersectionDepth / 2,
-                        newPosition.y - newDy * intersectionDepth / 2,
-                    )
+                                newPosition = Vec2.new(
+                                    newPosition.x - newDx * intersectionDepth / 2,
+                                    newPosition.y - newDy * intersectionDepth / 2,
+                                )
 
-                    cPosition = Vec2.new(
-                        cPosition.x + newDx * intersectionDepth / 2,
-                        cPosition.y + newDy * intersectionDepth / 2,
-                    )
-                }
+                                cPosition = Vec2.new(
+                                    cPosition.x + newDx * intersectionDepth / 2,
+                                    cPosition.y + newDy * intersectionDepth / 2,
+                                )
+                            }
 
-                const collisionPoint = Vec2.add(
-                    Vec2.multiplyScalar(newPosition, options.precalc.radiusFactor),
-                    Vec2.multiplyScalar(cPosition, options.precalc.radiusFactor)
-                )
+                            const collisionPoint = Vec2.add(
+                                Vec2.multiplyScalar(newPosition, radius / (radius + radius)),
+                                Vec2.multiplyScalar(cPosition, cRadius / (cRadius + cRadius))
+                            )
 
-                entityManager.particles[particleIndex] = {
-                    ...entityManager.particles[particleIndex],
-                    position: newPosition,
-                    velocity: Physics.applyFriction(
-                        Vec2.reflectFromPoint(collisionPoint, cPosition, newVelocity),
-                        options
-                    )
-                }
+                            entityManager.particles[particleIndex] = {
+                                ...entityManager.particles[particleIndex],
+                                position: newPosition,
+                                velocity: Physics.applyFriction(
+                                    Vec2.reflectFromPoint(collisionPoint, cPosition, newVelocity),
+                                    options
+                                )
+                            }
 
-                entityManager.particles[i] = {
-                    ...entityManager.particles[i],
-                    position: cPosition,
-                    velocity: Physics.applyFriction(
-                        Vec2.reflectFromPoint(collisionPoint, newPosition, cVelocity),
-                        options
-                    )
-                }
-
-            }
-        }
-    }
-
-    private static _resolveCollisions(
-        particleIndex: number,
-        entityManager: EntityManager,
-        options: Options
-    ) {
-        Physics._resolveObstacleCollisions(particleIndex, entityManager, options)
-        Physics._resolveParticleCollisions(particleIndex, entityManager, options)
+                            entityManager.particles[anotherParticleIndex] = {
+                                ...entityManager.particles[anotherParticleIndex],
+                                position: cPosition,
+                                velocity: Physics.applyFriction(
+                                    Vec2.reflectFromPoint(collisionPoint, newPosition, cVelocity),
+                                    options
+                                )
+                            }
+                        }
+                    })
+                })
+            })
+        })
     }
 
     static applyFriction(v: Vector2, options: Options): Vector2 {
