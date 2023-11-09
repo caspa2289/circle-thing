@@ -11,7 +11,6 @@ export class Renderer {
             app.context.fillStyle = color
             app.context.arc(position.x, position.y, radius, 0, options.precalc.circleAngle)
             app.context.fill()
-
         })
         this._drawObstacles(app, entityManager.obstacles)
         if (options.debug) {
@@ -27,22 +26,22 @@ export class Renderer {
         // app.context.fillStyle = 'black'
         // app.context.fillText(String(id), position.x, position.y)
 
-        const { gridWidth, gridHeight } = app
+        const { gridCellWidth, gridCellHeight } = app
 
         //FIXME: make grid resolution choosable
-        for (let i = 0; i <= 20; i++) {
+        for (let i = 0; i <= app.options.physicsGridResolution; i++) {
             app.context.strokeStyle = 'lightgreen'
             app.context.beginPath()
-            app.context.moveTo((i + 1) * gridWidth, 0)
-            app.context.lineTo((i + 1) * gridWidth, app.canvas.clientHeight)
+            app.context.moveTo((i + 1) * gridCellWidth, 0)
+            app.context.lineTo((i + 1) * gridCellWidth, app.canvas.clientHeight)
             app.context.stroke()
 
             app.context.beginPath()
-            app.context.moveTo( 0, (i + 1) * gridHeight)
-            app.context.lineTo(app.canvas.clientWidth, (i + 1) * gridHeight )
+            app.context.moveTo( 0, (i + 1) * gridCellHeight)
+            app.context.lineTo(app.canvas.clientWidth, (i + 1) * gridCellHeight )
             app.context.stroke()
 
-            app.context.fillText(`${i}, ${i}`, (i + 0.45) * gridWidth, (i + 0.5) * gridHeight)
+            app.context.fillText(`${i}, ${i}`, (i) * gridCellWidth, (i) * gridCellHeight)
         }
     }
 
