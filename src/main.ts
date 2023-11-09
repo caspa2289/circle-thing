@@ -16,8 +16,13 @@ entityManager.addObstacle(0, 0, app.canvas.clientWidth, 20)
 
 app.init()
 
-setInterval(() => {
+let lastCallTime = 0
+
+app.onUpdate = (frameTime: number) => {
+    if (frameTime - lastCallTime < 80) return
     if (entityManager.particles.length >= 2000) return
+
+    lastCallTime = frameTime
 
     entityManager.addParticle({
         position: Vec2.new(30, 30),
@@ -54,4 +59,4 @@ setInterval(() => {
         mass: 1,
         radius: 2,
     })
-}, 150)
+}
