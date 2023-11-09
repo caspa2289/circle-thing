@@ -11,8 +11,9 @@ export class App {
     rawDeltaTime: number
     lastFrameTime: number
     isPaused: boolean
-    gridHeight: number
-    gridWidth: number
+    gridCellHeight: number
+    gridCellWidth: number
+    onUpdate: (frameTime?: number) => void | null
     private static _instance?: App
     readonly entityManager: EntityManager
     readonly options: Options
@@ -30,9 +31,10 @@ export class App {
         this.isPaused = false
         this.options = options
         this.entityManager = entityManager
-        //TODO: сделать настраиваемым
-        this.gridWidth = this.canvas.clientWidth / 20
-        this.gridHeight = this.canvas.clientHeight / 20
+        this.gridCellWidth = this.canvas.clientWidth / this.options.physicsGridResolution
+        this.gridCellHeight = this.canvas.clientHeight / this.options.physicsGridResolution
+        //FIXME: шину событий надо сделать
+        this.onUpdate = null
 
         this.update = this.update.bind(this)
         this.onPause = this.onPause.bind(this)
@@ -41,16 +43,6 @@ export class App {
     init() {
         this.canvas.width = document.body.clientWidth * this.dpr
         this.canvas.height = document.body.clientHeight * this.dpr
-
-        //TODO: integrate stepping
-        // if (this.options.debug) {
-        //     window.addEventListener('click', () => {
-        //         this.rawDeltaTime = 1
-        //         this.lastFrameTime = 1
-        //         Physics.prepareFrame(this.entityManager, this.options, this)
-        //         Renderer.drawFrame(this, this.options, this.entityManager)
-        //     })
-        // }
         window.addEventListener('click', this.onPause)
         window.requestAnimationFrame(this.update)
 
@@ -62,6 +54,8 @@ export class App {
 
         window.requestAnimationFrame(this.update)
         if (this.isPaused) return
+
+        this.onUpdate && this.onUpdate(frameTime)
 
         Physics.prepareFrame(this.entityManager, this.options, this)
         Renderer.drawFrame(this, this.options, this.entityManager)

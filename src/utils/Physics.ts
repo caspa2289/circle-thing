@@ -3,6 +3,7 @@ import { Vec2 } from './Vector2'
 import { Options } from './Options'
 import { App } from './App'
 import { EntityManager } from './EntityManager'
+import { Utils } from './Utils'
 
 export class Physics {
     static prepareFrame(entityManager: EntityManager, options: Options, app: App) {
@@ -14,51 +15,8 @@ export class Physics {
          * Нужна оптимизация + увеличение итераций физики
          */
         for (let x = 0; x < iterationsMax; x++) {
-
-            //FIXME: figure out why Array constructor doesn`t work
-            const possibleCollisions: PossibleCollisionsData = [
-                [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ], [
-                    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-                ],
-            ]
+            //UPD: .fill fills array with references to provided value :(
+            const possibleCollisions: PossibleCollisionsData = Utils.createUniformGridOfSize(options.physicsGridResolution)
 
             //разбиение на клетки работает, насколько я могу судить.
             //вроде как единственная проблема с текущим алгоритмом - это размер партиклов, если он больше клетки, то смэрть
@@ -69,11 +27,11 @@ export class Physics {
                     radius
                 } = entityManager.particles[i]
 
-                const xStart = Math.floor((position.x - radius) / app.gridWidth)
-                const xEnd = Math.floor((position.x + radius) / app.gridWidth)
+                const xStart = Utils.clamp(Math.floor((position.x - radius) / app.gridCellWidth), 0, options.physicsGridResolution - 1)
+                const xEnd = Utils.clamp(Math.floor((position.x + radius) / app.gridCellWidth), 0, options.physicsGridResolution - 1)
 
-                const yStart = Math.floor((position.y - radius) / app.gridHeight)
-                const yEnd = Math.floor((position.y + radius) / app.gridHeight)
+                const yStart = Utils.clamp(Math.floor((position.y - radius) / app.gridCellHeight), 0, options.physicsGridResolution - 1)
+                const yEnd = Utils.clamp(Math.floor((position.y + radius) / app.gridCellHeight), 0, options.physicsGridResolution - 1)
 
                 possibleCollisions[xStart][yStart].push(id)
 
@@ -179,6 +137,15 @@ export class Physics {
 
                     const newDx = (newPosition.x - collisionPoint.x) / distance
                     const newDy = (newPosition.y - collisionPoint.y) / distance
+
+                    /**
+                     * 0 / 0 could and should happen,
+                     * when particle intersects obstacle exactly aligned with collision point,
+                     * which gives NaN (for whatever reason),
+                     * skip repositioning in this case
+                     */
+                    if (isNaN(newDx) || isNaN(newDy)) return
+
                     newPosition = Vec2.new(
                         newPosition.x + newDx * intersectionDepth,
                         newPosition.y + newDy * intersectionDepth,
