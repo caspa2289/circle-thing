@@ -4,7 +4,6 @@ import { Physics } from './Physics'
 import { Renderer } from './Renderer'
 
 export class App {
-    //FIXME: сделать сеттеры/геттеры
     canvas: HTMLCanvasElement
     context: CanvasRenderingContext2D
     dpr: number
@@ -41,8 +40,9 @@ export class App {
     }
 
     init() {
-        this.canvas.width = document.body.clientWidth * this.dpr
-        this.canvas.height = document.body.clientHeight * this.dpr
+        //TODO: сделать в расчётах поправки на дпр
+        this.canvas.width = document.body.clientWidth
+        this.canvas.height = document.body.clientHeight
         window.addEventListener('click', this.onPause)
         window.requestAnimationFrame(this.update)
 
